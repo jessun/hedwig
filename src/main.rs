@@ -1,3 +1,7 @@
+mod logging;
+
 fn main() {
-    println!("Hello, world!");
+    logging::init();
+    let git_hash = option_env!("GIT_HASH").unwrap_or("DEV");
+    tracing::info!("[Version: {}] Hello world!", git_hash);
 }
