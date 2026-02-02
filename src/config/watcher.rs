@@ -17,7 +17,7 @@ pub fn run(tx: mpsc::Sender<Event>) -> Result<RecommendedWatcher> {
 
     let mut watcher = RecommendedWatcher::new(event_handler, Config::default())?;
 
-    let path = super::Config::path()?;
+    let path = super::AppConfig::path()?;
 
     if let Err(e) = watcher.watch(&path, RecursiveMode::NonRecursive) {
         handler_config_not_found(&e);
@@ -35,7 +35,7 @@ fn handler_config_not_found(err: &Error) {
     match err.kind {
         notify::ErrorKind::PathNotFound => {
             tracing::warn!("config file not found, generating default template...");
-            if let Err(e) = super::Config::create_default_template() {
+            if let Err(e) = super::AppConfig::create_default_template() {
                 tracing::error!("failed to create default config: {}", e);
             } else {
                 tracing::info!("default config generated");
