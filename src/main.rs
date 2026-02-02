@@ -6,6 +6,7 @@ mod config;
 mod core;
 mod gmail;
 mod logging;
+mod notifier;
 
 fn main() -> Result<()> {
     logging::init();
