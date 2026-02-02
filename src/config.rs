@@ -3,7 +3,7 @@ use std::{fs, path::PathBuf};
 use anyhow::{Context, Ok, Result, anyhow};
 use serde::{Deserialize, Serialize};
 
-mod watcher;
+pub mod watcher;
 
 pub mod defaults {
     #![allow(dead_code)]
