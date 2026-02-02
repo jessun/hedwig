@@ -7,13 +7,18 @@ use tokio::{sync::mpsc, time};
 
 use crate::config::AppConfig;
 
+#[warn(unused_assignments)]
 pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
     tracing::info!("[poller] event loop initialized");
 
     let mut interval = time::interval(time::Duration::from_secs(60));
     interval.set_missed_tick_behavior(time::MissedTickBehavior::Skip);
 
-    let mut cfg = AppConfig::new();
+    let mut cfg = AppConfig::load().unwrap_or_else(|e| {
+        tracing::error!("failed to load config file: {}", e);
+        AppConfig::new()
+    });
+    tracing::info!("load app config: email_addr: {}", cfg.username);
 
     loop {
         tokio::select! {
