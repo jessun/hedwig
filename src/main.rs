@@ -3,6 +3,7 @@ use notify::Event;
 use tokio::sync::mpsc;
 
 mod config;
+mod gmail;
 mod logging;
 mod poller;
 

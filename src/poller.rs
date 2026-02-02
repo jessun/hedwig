@@ -5,7 +5,10 @@ use notify::{
 };
 use tokio::{sync::mpsc, time};
 
-use crate::config::AppConfig;
+use crate::{
+    config::AppConfig,
+    gmail::{client::GmailClient, parse::get_unread_count},
+};
 
 #[warn(unused_assignments)]
 pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
@@ -18,7 +21,21 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
         tracing::error!("failed to load config file: {}", e);
         AppConfig::new()
     });
-    tracing::info!("load app config: email_addr: {}", cfg.username);
+    tracing::info!("load app config successfully. email_addr: {}", cfg.username);
+    let _client = GmailClient::new();
+    let res = _client.feed_atom(&cfg.username, &cfg.password).await;
+    match res {
+        Err(e) => tracing::error!("gmail client http request error: {}", e),
+        Ok(xml_text) => {
+            let res = get_unread_count(&xml_text);
+            match res {
+                Err(e) => tracing::error!("gmail client http request error: {}", e),
+                Ok(count) => {
+                    tracing::info!("{} unread mail count: {}", &cfg.username, count)
+                }
+            }
+        }
+    }
 
     loop {
         tokio::select! {
@@ -38,6 +55,22 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
             }
             _ = interval.tick() => {
             // mail feed atom HTTP request
+            if cfg.is_valid() {
+                let _client = GmailClient::new();
+                    let res = _client.feed_atom(&cfg.username, &cfg.password).await;
+                    match res {
+                        Err(e) => tracing::error!("gmail client http request error: {}",e),
+                        Ok(xml_text) => {
+                            let res = get_unread_count(&xml_text);
+                            match res {
+                                Err(e) => tracing::error!("gmail client http request error: {}",e),
+                                Ok(count) => {
+                                    tracing::info!("gmail({}) unread mail count: {}",&cfg.username, count)
+                                },
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -48,7 +81,6 @@ fn is_updated_file(kind: notify::EventKind) -> bool {
         kind,
         notify::EventKind::Modify(ModifyKind::Data(DataChange::Content))
     ) {
-        tracing::debug!("kind: {:?}", kind);
         return true;
     }
     false
