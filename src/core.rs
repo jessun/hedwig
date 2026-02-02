@@ -8,11 +8,13 @@ use tokio::{sync::mpsc, time};
 use crate::{
     config::AppConfig,
     gmail::{client::GmailClient, parse::get_unread_count},
+    notifier,
 };
 
 #[warn(unused_assignments)]
 pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
     tracing::info!("[poller] event loop initialized");
+    notifier::init();
 
     let mut interval = time::interval(time::Duration::from_secs(60));
     interval.set_missed_tick_behavior(time::MissedTickBehavior::Skip);
@@ -34,6 +36,7 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
                         Ok(c) => {
                             if c.is_valid() {
                                 cfg = c;
+                                notifier::send("Configuration Updated", "New settings have been loaded successfully.");
                                 tracing::info!("update app config: email_addr: {}", cfg.username);
                                 handler_gmail(&client, &cfg).await;
                                 interval.reset();
@@ -72,5 +75,6 @@ async fn gmail_unread(client: &GmailClient, cfg: &AppConfig) -> Result<()> {
     let xml_resp = client.feed_atom(&cfg.username, &cfg.password).await?;
     let count = get_unread_count(&xml_resp)?;
     tracing::info!("{} unread mail count: {}", &cfg.username, count);
+    notifier::send("Unread Email Reminder", "You have 10 unread emails.");
     Ok(())
 }
