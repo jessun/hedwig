@@ -3,9 +3,9 @@ use notify::Event;
 use tokio::sync::mpsc;
 
 mod config;
+mod core;
 mod gmail;
 mod logging;
-mod poller;
 
 fn main() -> Result<()> {
     logging::init();
@@ -26,6 +26,6 @@ async fn run() -> Result<()> {
     let (tx, rx) = mpsc::channel::<Event>(100);
 
     let _watcher = config::watcher::run(tx)?;
-    poller::event_loop(rx).await?;
+    core::event_loop(rx).await?;
     Ok(())
 }
