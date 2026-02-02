@@ -3,7 +3,7 @@ use std::process::Command;
 fn main() {
     // 1. 执行 git 命令获取 short hash
     let output = Command::new("git")
-        .args(&["rev-parse", "--short", "HEAD"])
+        .args(["rev-parse", "--short", "HEAD"])
         .output();
 
     let git_hash = match output {
