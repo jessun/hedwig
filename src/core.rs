@@ -22,25 +22,12 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
         AppConfig::new()
     });
     tracing::info!("load app config successfully. email_addr: {}", cfg.username);
-    let _client = GmailClient::new();
-    let res = _client.feed_atom(&cfg.username, &cfg.password).await;
-    match res {
-        Err(e) => tracing::error!("gmail client http request error: {}", e),
-        Ok(xml_text) => {
-            let res = get_unread_count(&xml_text);
-            match res {
-                Err(e) => tracing::error!("gmail client http request error: {}", e),
-                Ok(count) => {
-                    tracing::info!("{} unread mail count: {}", &cfg.username, count)
-                }
-            }
-        }
-    }
+    let client = GmailClient::new();
 
     loop {
         tokio::select! {
             Some(event) = rx.recv() => {
-                if is_updated_file( event.kind) {
+                if is_updated_file(event.kind) {
                     let res = AppConfig::load();
                     match res {
                         Err(e) => tracing::error!("failed to load config file: {}", e),
@@ -48,28 +35,17 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
                             if c.is_valid() {
                                 cfg = c;
                                 tracing::info!("update app config: email_addr: {}", cfg.username);
+                                handler_gmail(&client, &cfg).await;
+                                interval.reset();
                             }
                         }
                     }
                 }
             }
             _ = interval.tick() => {
-            // mail feed atom HTTP request
-            if cfg.is_valid() {
-                let _client = GmailClient::new();
-                    let res = _client.feed_atom(&cfg.username, &cfg.password).await;
-                    match res {
-                        Err(e) => tracing::error!("gmail client http request error: {}",e),
-                        Ok(xml_text) => {
-                            let res = get_unread_count(&xml_text);
-                            match res {
-                                Err(e) => tracing::error!("gmail client http request error: {}",e),
-                                Ok(count) => {
-                                    tracing::info!("gmail({}) unread mail count: {}",&cfg.username, count)
-                                },
-                            }
-                        }
-                    }
+                tracing::debug!("tick!");
+                if cfg.is_valid() {
+                    handler_gmail(&client, &cfg).await;
                 }
             }
         }
@@ -84,4 +60,17 @@ fn is_updated_file(kind: notify::EventKind) -> bool {
         return true;
     }
     false
+}
+
+async fn handler_gmail(client: &GmailClient, cfg: &AppConfig) {
+    if let Err(e) = gmail_unread(client, cfg).await {
+        tracing::error!("{}", e);
+    }
+}
+
+async fn gmail_unread(client: &GmailClient, cfg: &AppConfig) -> Result<()> {
+    let xml_resp = client.feed_atom(&cfg.username, &cfg.password).await?;
+    let count = get_unread_count(&xml_resp)?;
+    tracing::info!("{} unread mail count: {}", &cfg.username, count);
+    Ok(())
 }

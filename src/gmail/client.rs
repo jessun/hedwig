@@ -17,7 +17,7 @@ impl GmailClient {
     pub async fn feed_atom(&self, username: &str, password: &str) -> Result<String> {
         let url = "https://mail.google.com/mail/feed/atom";
 
-        tracing::debug!("http request gmail feed atom");
+        tracing::info!("http request gmail feed atom");
         let resp = self
             .client
             .get(url)
