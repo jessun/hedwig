@@ -3,6 +3,7 @@ APP_NAME := Hedwig
 TARGET_DIR := target/release/bundle/osx
 SOURCE_APP := $(TARGET_DIR)/$(APP_NAME).app
 INSTALL_DIR := /Applications
+DMG_NAME := $(APP_NAME)_Installer.dmg
 
 # 默认任务：执行检查并打包
 all: check bundle
@@ -88,3 +89,19 @@ uninstall:
 run: bundle
 	@echo "Running $(APP_NAME).app..."
 	@open "$(SOURCE_APP)"
+
+dmg: bundle
+	@echo "💿 Creating DMG installer..."
+	@rm -f "$(TARGET_DIR)/$(DMG_NAME)"
+	@create-dmg \
+	  --volname "$(APP_NAME) Installer" \
+	  --volicon "./src/assets/app_icon.icns" \
+	  --window-pos 200 120 \
+	  --window-size 600 300 \
+	  --icon-size 100 \
+	  --icon "$(APP_NAME).app" 175 120 \
+	  --hide-extension "$(APP_NAME).app" \
+	  --app-drop-link 425 120 \
+	  "$(TARGET_DIR)/$(DMG_NAME)" \
+	  "$(SOURCE_APP)"
+	@echo "✅ DMG created at: $(TARGET_DIR)/$(DMG_NAME)"
