@@ -11,8 +11,9 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
     loop {
         tokio::select! {
                 Some(event) = rx.recv() => {
-                    tracing::info!("config file changed: {:?}", event.kind);
-                    interval.reset();
+                    if  is_updated_file( event.kind) {
+                        tracing::info!("config file changed: {:?}",event.kind);
+                    }
                 }
 
                 _ = interval.tick() => {
@@ -20,4 +21,11 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
             }
         }
     }
+}
+
+fn is_updated_file(kind: notify::EventKind) -> bool {
+    if matches!(kind, notify::EventKind::Modify(_)) {
+        return true;
+    }
+    false
 }

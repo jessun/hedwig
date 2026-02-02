@@ -39,4 +39,12 @@ impl Config {
 
         Ok(config_dir.join(defaults::CFG_FILE_NAME))
     }
+    fn create_default_template() -> Result<()> {
+        let cfg = Self::default();
+
+        let toml_str = toml::to_string_pretty(&cfg)?;
+        let path = Self::path()?;
+        fs::write(path, toml_str)?;
+        Ok(())
+    }
 }
