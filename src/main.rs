@@ -49,19 +49,12 @@ fn main() -> Result<()> {
         }
     });
 
-    el.run(move |event, _, control_flow| {
+    el.run(move |_event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
-
-        if let Ok(event) = menu_channel.try_recv() {
-            if event.id == quit_i.id() {
-                _tray_icon = None;
-                *control_flow = ControlFlow::Exit;
-            }
-        }
-
-        match event {
-            _ => {}
-        }
+        if menu_channel.try_recv().is_ok_and(|e| e.id == quit_i.id()) {
+            _tray_icon = None;
+            *control_flow = ControlFlow::Exit;
+        };
     });
 }
 
