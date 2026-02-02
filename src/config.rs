@@ -12,7 +12,7 @@ pub mod defaults {
     pub const CFG_FILE_NAME: &str = "config.toml";
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct AppConfig {
     pub username: String,
     pub password: String,
@@ -56,10 +56,10 @@ impl AppConfig {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.username == defaults::USERNAME
+        !(self.username == defaults::USERNAME
             || self.password == defaults::PASSWORD
             || self.username.is_empty()
-            || self.password.is_empty()
+            || self.password.is_empty())
     }
 
     pub fn load() -> Result<Self> {
