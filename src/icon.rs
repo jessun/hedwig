@@ -6,7 +6,7 @@ const ICON_BYTES: &[u8] = include_bytes!("assets/tray_icon.png");
 pub fn load_app_icon() -> Result<Icon> {
     let image = image::load_from_memory(ICON_BYTES)
         .context("failed to parse icon image")?
-        .into_rgba8(); // 强制转换为 RGBA 格式
+        .into_rgba8();
 
     let (width, height) = image.dimensions();
     let rgba = image.into_raw();

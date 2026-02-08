@@ -58,7 +58,6 @@ fn main() -> Result<()> {
     });
 }
 
-// 原来的 run() 函数改名为 run_backend()，逻辑保持不变
 async fn run_backend() -> Result<()> {
     let (tx, rx) = mpsc::channel::<notify::Event>(100);
 
