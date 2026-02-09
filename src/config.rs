@@ -32,7 +32,7 @@ pub mod defaults {
     pub const CFG_FILE_NAME: &str = "config.toml";
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Default)]
 pub struct AppConfig {
     pub username: String,
     pub password: String,
@@ -40,13 +40,6 @@ pub struct AppConfig {
 }
 
 impl AppConfig {
-    pub fn new() -> Self {
-        AppConfig {
-            username: defaults::USERNAME.into(),
-            password: defaults::PASSWORD.into(),
-            proxy_addr: None,
-        }
-    }
     fn path() -> Result<PathBuf> {
         let home_dir = dirs::home_dir().ok_or_else(|| anyhow!("could not find home directory"))?;
         let config_dir = home_dir.join(".config").join(env!("CARGO_PKG_NAME"));

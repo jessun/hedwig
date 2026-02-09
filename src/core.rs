@@ -1,15 +1,11 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use notify::{
     Event,
     event::{DataChange, ModifyKind},
 };
 use tokio::{sync::mpsc, time};
 
-use crate::{
-    config::AppConfig,
-    gmail::{client::GmailClient, parse::get_unread_count},
-    notifier,
-};
+use crate::{config::AppConfig, gmail, notifier, pool::ClientPool};
 
 #[warn(unused_assignments)]
 pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
@@ -21,11 +17,10 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
 
     let mut cfg = AppConfig::load().unwrap_or_else(|e| {
         tracing::error!("failed to load config file: {}", e);
-        AppConfig::new()
+        AppConfig::default()
     });
     tracing::info!("load app config successfully. email_addr: {}", cfg.username);
-    let client =
-        GmailClient::new(cfg.proxy_addr.clone()).context("failed to initialize gmail client")?;
+    let mut client_pool = ClientPool::new();
 
     loop {
         tokio::select! {
@@ -39,7 +34,7 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
                                 cfg = c;
                                 notifier::send("Configuration Updated", "New settings have been loaded successfully.");
                                 tracing::info!("update app config: email_addr: {}", cfg.username);
-                                handler_gmail(&client, &cfg).await;
+                                handler_gmail(&mut client_pool, &cfg).await;
                                 interval.reset();
                             }
                         }
@@ -49,7 +44,7 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
             _ = interval.tick() => {
                 tracing::debug!("tick!");
                 if cfg.is_valid() {
-                    handler_gmail(&client, &cfg).await;
+                    handler_gmail(&mut client_pool, &cfg).await;
                 }
             }
         }
@@ -66,16 +61,19 @@ fn is_updated_file(kind: notify::EventKind) -> bool {
     false
 }
 
-async fn handler_gmail(client: &GmailClient, cfg: &AppConfig) {
-    if let Err(e) = gmail_unread(client, cfg).await {
+async fn handler_gmail(pool: &mut ClientPool, cfg: &AppConfig) {
+    if let Err(e) = gmail_unread(pool, cfg).await {
         tracing::error!("{}", e);
     }
 }
 
-async fn gmail_unread(client: &GmailClient, cfg: &AppConfig) -> Result<()> {
+async fn gmail_unread(pool: &mut ClientPool, cfg: &AppConfig) -> Result<()> {
+    let client = pool.get(cfg)?;
     let xml_resp = client.feed_atom(&cfg.username, &cfg.password).await?;
-    let count = get_unread_count(&xml_resp)?;
-    tracing::info!("{} unread mail count: {}", &cfg.username, count);
-    notifier::send("Unread Email Reminder", "You have 10 unread emails.");
+    let count = gmail::parse::get_unread_count(&xml_resp)?;
+    notifier::send(
+        "Unread Email Reminder",
+        format!("You have {} unread emails.", count).as_ref(),
+    );
     Ok(())
 }
