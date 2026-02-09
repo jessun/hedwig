@@ -1,5 +1,5 @@
-use anyhow::{Ok, Result};
-use reqwest::Client;
+use anyhow::Result;
+use reqwest::{Client, Proxy};
 
 const USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
@@ -8,10 +8,22 @@ pub struct GmailClient {
 }
 
 impl GmailClient {
-    pub fn new() -> Self {
-        GmailClient {
-            client: Client::new(),
+    pub fn new(proxy_url: Option<String>) -> Result<Self> {
+        let mut builder = Client::builder();
+
+        if let Some(url) = proxy_url
+            && !url.is_empty()
+        {
+            tracing::info!("proxy set {:?}", url);
+            let proxy = Proxy::all(url)?;
+            builder = builder.proxy(proxy);
+        } else {
+            tracing::info!("no proxy");
         }
+
+        let client = builder.build()?;
+
+        Ok(GmailClient { client })
     }
 
     pub async fn feed_atom(&self, username: &str, password: &str) -> Result<String> {

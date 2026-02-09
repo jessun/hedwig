@@ -16,7 +16,7 @@ pub mod defaults {
 pub struct AppConfig {
     pub username: String,
     pub password: String,
-    pub proxy_addr: String,
+    pub proxy_addr: Option<String>,
 }
 
 impl Default for AppConfig {
@@ -24,7 +24,7 @@ impl Default for AppConfig {
         Self {
             username: defaults::USERNAME.into(),
             password: defaults::PASSWORD.into(),
-            proxy_addr: String::new(),
+            proxy_addr: None,
         }
     }
 }
@@ -34,7 +34,7 @@ impl AppConfig {
         AppConfig {
             username: String::new(),
             password: String::new(),
-            proxy_addr: String::new(),
+            proxy_addr: None,
         }
     }
     fn path() -> Result<PathBuf> {

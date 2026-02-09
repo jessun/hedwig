@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use notify::{
     Event,
     event::{DataChange, ModifyKind},
@@ -24,7 +24,8 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
         AppConfig::new()
     });
     tracing::info!("load app config successfully. email_addr: {}", cfg.username);
-    let client = GmailClient::new();
+    let client =
+        GmailClient::new(cfg.proxy_addr.clone()).context("failed to initialize gmail client")?;
 
     loop {
         tokio::select! {
