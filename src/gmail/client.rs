@@ -14,11 +14,11 @@ impl GmailClient {
         if let Some(url) = proxy_url
             && !url.is_empty()
         {
-            tracing::info!("proxy set {:?}", url);
+            tracing::info!("gmail client proxy is {:?}", url);
             let proxy = Proxy::all(url)?;
             builder = builder.proxy(proxy);
         } else {
-            tracing::info!("no proxy");
+            tracing::info!("gmail client no proxy");
         }
 
         let client = builder.build()?;
