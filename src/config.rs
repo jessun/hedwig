@@ -89,3 +89,18 @@ impl AppConfig {
         Ok(cfg)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_create_default_template() {
+        let cfg: AppConfig = toml::from_str(DEFAULT_CONFIG_TEMPLATE)
+            .expect("DEFAULT_CONFIG_TEMPLATE contains invalid TOML or mismatched fields");
+
+        assert_eq!(cfg.username, defaults::USERNAME);
+        assert_eq!(cfg.password, defaults::PASSWORD);
+        assert_eq!(cfg.proxy_addr, None);
+    }
+}
