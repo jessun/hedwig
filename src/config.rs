@@ -4,6 +4,26 @@ use anyhow::{Context, Ok, Result, anyhow};
 use serde::{Deserialize, Serialize};
 
 pub mod watcher;
+const DEFAULT_CONFIG_TEMPLATE: &str = r#"# ==========================================
+# Hedwig Configuration File
+# ==========================================
+
+# [Required] Gmail Username
+# Please enter your full email address.
+username = "YOUR_GMAIL@gmail.com"
+
+# [Required] Gmail App Password
+# Note: This is NOT your standard Google login password.
+# You must generate an App Password in your Google Account settings:
+# Security -> 2-Step Verification -> App passwords
+password = "YOUR_APP_PASSWORD"
+
+# [Optional] HTTP Proxy Address
+# Useful if you cannot connect to Gmail directly.
+# Examples: "http://127.0.0.1:1087
+# If you don't need a proxy, keep the line below commented out.
+# proxy_addr = "http://127.0.0.1:7890"
+"#;
 
 pub mod defaults {
     #![allow(dead_code)]
@@ -19,21 +39,11 @@ pub struct AppConfig {
     pub proxy_addr: Option<String>,
 }
 
-impl Default for AppConfig {
-    fn default() -> Self {
-        Self {
-            username: defaults::USERNAME.into(),
-            password: defaults::PASSWORD.into(),
-            proxy_addr: None,
-        }
-    }
-}
-
 impl AppConfig {
     pub fn new() -> Self {
         AppConfig {
-            username: String::new(),
-            password: String::new(),
+            username: defaults::USERNAME.into(),
+            password: defaults::PASSWORD.into(),
             proxy_addr: None,
         }
     }
@@ -47,11 +57,13 @@ impl AppConfig {
         Ok(config_dir.join(defaults::CFG_FILE_NAME))
     }
     fn create_default_template() -> Result<()> {
-        let cfg = Self::default();
-
-        let toml_str = toml::to_string_pretty(&cfg)?;
         let path = Self::path()?;
-        fs::write(path, toml_str)?;
+        if path.exists() {
+            return Ok(());
+        }
+
+        fs::write(&path, DEFAULT_CONFIG_TEMPLATE).context("failed to write config file")?;
+
         Ok(())
     }
 
