@@ -14,6 +14,7 @@ mod gmail;
 mod icon;
 mod logging;
 mod notifier;
+mod pool;
 
 #[warn(clippy::collapsible_if)]
 fn main() -> Result<()> {
