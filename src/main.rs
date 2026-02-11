@@ -18,7 +18,7 @@ mod pool;
 
 #[warn(clippy::collapsible_if)]
 fn main() -> Result<()> {
-    logging::init();
+    let _logger_handler = logging::init()?;
 
     let git_hash = option_env!("GIT_HASH").unwrap_or("DEV");
     tracing::info!("hedwig({}) is starting UI...", git_hash);
