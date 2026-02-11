@@ -25,7 +25,7 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
     handler_gmail(&mut client_pool, &cfg).await;
 
     loop {
-        let mut delay = calculate_next_delay(&cfg.cron_expr);
+        let delay = calculate_next_delay(&cfg.cron_expr);
 
         tokio::select! {
             Some(event) = rx.recv() => {
@@ -36,7 +36,6 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
                         Ok(c) => {
                             if c.is_valid() {
                                 cfg = c;
-                                delay = calculate_next_delay(&cfg.cron_expr);
                                 notifier::send("Configuration Updated", "New settings have been loaded successfully.");
                                 tracing::info!("update app config: email_addr: {}", cfg.username);
                                 handler_gmail(&mut client_pool, &cfg).await;
@@ -56,13 +55,10 @@ pub async fn event_loop(mut rx: mpsc::Receiver<Event>) -> Result<()> {
 }
 
 fn is_updated_file(kind: notify::EventKind) -> bool {
-    if matches!(
+    matches!(
         kind,
         notify::EventKind::Modify(ModifyKind::Data(DataChange::Content))
-    ) {
-        return true;
-    }
-    false
+    )
 }
 
 async fn handler_gmail(pool: &mut ClientPool, cfg: &AppConfig) {
