@@ -31,7 +31,7 @@ check:
 # Linter 检查 (Clippy) - 甚至会把警告当做错误处理，保证代码质量
 clippy:
 	@echo "🔍 Running cargo clippy..."
-	cargo clippy -- -D warnings
+	cargo clippy --all-targets --all-features -- -D warnings
 
 # 格式检查 (Format) - 检查代码是否符合标准格式
 fmt:
