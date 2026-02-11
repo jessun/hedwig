@@ -17,6 +17,12 @@ all: check bundle
 debug:
 	RUST_LOG=debug cargo run
 
+update:
+	cargo upgrade --compatible
+
+update-dry-run:
+	cargo upgrade --dry-run --compatible
+
 # 基础编译检查
 check:
 	@echo "🔍 Running cargo check..."
