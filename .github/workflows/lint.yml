@@ -1,4 +1,4 @@
-name: CI
+name: lint
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
 
       # 1. 安装 Rust 工具链
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
           components: rustfmt, clippy
 
