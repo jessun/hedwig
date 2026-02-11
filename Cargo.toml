@@ -8,6 +8,7 @@ anyhow = "1.0.100"
 chrono = "0.4.43"
 cron = "0.15.0"
 dirs = "6.0.0"
+flexi_logger = { version = "0.31", features = ["trc", "compress"] }
 http = "1.4.0"
 image = "0.25.9"
 mac-notification-sys = "0.6"
