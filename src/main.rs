@@ -53,7 +53,7 @@ fn main() -> Result<()> {
     el.run(move |_event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
         if menu_channel.try_recv().is_ok_and(|e| e.id == quit_i.id()) {
-            _tray_icon = None;
+            // _tray_icon = None;
             *control_flow = ControlFlow::Exit;
         };
     });
