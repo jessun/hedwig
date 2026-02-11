@@ -1,6 +1,6 @@
 [package]
 name = "hedwig"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2024"
 
 [dependencies]
@@ -25,12 +25,15 @@ tray-icon = "0.21.3"
 
 [package.metadata.bundle]
 name = "Hedwig"
-identifier = "com.hedwig.app" 
+identifier = "io.github.jessun.hedwig"
 icon = ["./src/assets/app_icon.icns"]
-version = "0.0.1"
-copyright = "Copyright © 2026 Hedwig Developer"
+version = "0.1.0"
+copyright = "Copyright © 2026 jessun"
 category = "Productivity"
 short_description = "A minimal Gmail watcher for macOS."
+long_description = """
+Hedwig watches your Gmail inbox and notifies you of new messages.
+"""
 osx_ui_element = true
 
 # 👇 新增：Release 编译配置
