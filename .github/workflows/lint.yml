@@ -15,11 +15,12 @@ jobs:
     runs-on: macos-latest # 使用 macos 以解决 tao/tray-icon 的依赖问题
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+
 
       # 1. 安装 Rust 工具链
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
           components: rustfmt, clippy
 
@@ -38,3 +39,8 @@ jobs:
       # 5. 尝试编译 (确保没有编译错误)
       - name: Cargo check
         run: cargo check
+
+      # 6. 单元测试
+      - name: Cargo test
+        run: cargo test --all-features
+
