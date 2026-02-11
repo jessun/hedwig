@@ -34,7 +34,7 @@ jobs:
 
       # 4. 代码静态分析 (Clippy)
       - name: Clippy check
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --all-targets --all-features -- -D warnings
 
       # 5. 尝试编译 (确保没有编译错误)
       - name: Cargo check
