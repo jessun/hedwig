@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: Check & Lint
+    runs-on: macos-latest # 使用 macos 以解决 tao/tray-icon 的依赖问题
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. 安装 Rust 工具链
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      # 2. 缓存依赖 (极大加快构建速度)
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      # 3. 检查代码格式
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      # 4. 代码静态分析 (Clippy)
+      - name: Clippy check
+        run: cargo clippy -- -D warnings
+
+      # 5. 尝试编译 (确保没有编译错误)
+      - name: Cargo check
+        run: cargo check
